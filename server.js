@@ -7,17 +7,35 @@ const path = require("path");
 const app = express();
 const PORT = 3000;
 
+
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, "frontend"))); // Adjust path if needed
 
 
-mongoose.connect("mongodb://127.0.0.1:27017/payrollDB");
+mongoose.connect("mongodb://127.0.0.1:27017/payrollDB", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => console.log("✅ Connected to MongoDB"));
 
-// Payroll schema & model
+
+const EmployeeSchema = new mongoose.Schema({
+  name: String,
+  position: String,
+  department: String,
+  salary: Number,
+  timeIn: String,
+  timeOut: String,
+  absences: Number,
+}, { timestamps: true });
+
+const Employee = mongoose.model("Employee", EmployeeSchema);
+
+
 const PayrollSchema = new mongoose.Schema({
   ratePerHour: Number,
   hoursPerDay: Number,
@@ -33,30 +51,59 @@ const PayrollSchema = new mongoose.Schema({
 
 const Payroll = mongoose.model("Payroll", PayrollSchema);
 
-// Serve frontend static files from the "frontend" folder
-app.use(express.static(path.join(__dirname, "frontend")));
 
-// CRUD routes for Payroll
 
-// Create
-app.post("/payroll", async (req, res) => {
+app.get("/api/employees", async (req, res) => {
+  const employees = await Employee.find().sort({ createdAt: -1 });
+  res.json(employees);
+});
+
+app.get("/api/employees/:id", async (req, res) => {
   try {
-    const payroll = new Payroll(req.body);
-    const saved = await payroll.save();
+    const employee = await Employee.findById(req.params.id);
+    if (!employee) return res.status(404).json({ error: "Not found" });
+    res.json(employee);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/employees", async (req, res) => {
+  try {
+    const newEmployee = new Employee(req.body);
+    const saved = await newEmployee.save();
     res.status(201).json(saved);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Read all
-app.get("/payroll", async (req, res) => {
+app.put("/api/employees/:id", async (req, res) => {
+  try {
+    const updated = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/employees/:id", async (req, res) => {
+  try {
+    await Employee.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+app.get("/api/payroll", async (req, res) => {
   const payrolls = await Payroll.find().sort({ createdAt: -1 });
   res.json(payrolls);
 });
 
-// Read one
-app.get("/payroll/:id", async (req, res) => {
+app.get("/api/payroll/:id", async (req, res) => {
   try {
     const payroll = await Payroll.findById(req.params.id);
     if (!payroll) return res.status(404).json({ error: "Not found" });
@@ -66,8 +113,17 @@ app.get("/payroll/:id", async (req, res) => {
   }
 });
 
+app.post("/api/payroll", async (req, res) => {
+  try {
+    const payroll = new Payroll(req.body);
+    const saved = await payroll.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-app.put("/payroll/:id", async (req, res) => {
+app.put("/api/payroll/:id", async (req, res) => {
   try {
     const updated = await Payroll.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -78,8 +134,7 @@ app.put("/payroll/:id", async (req, res) => {
   }
 });
 
-
-app.delete("/payroll/:id", async (req, res) => {
+app.delete("/api/payroll/:id", async (req, res) => {
   try {
     await Payroll.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted" });
@@ -91,6 +146,4 @@ app.delete("/payroll/:id", async (req, res) => {
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "index.html"));
 });
-
-// Start server
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
