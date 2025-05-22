@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payroll System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: blue;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #9BB1D4;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #444;
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+
+    label {
+      display: inline-block;
+      width: 180px;
+      margin-bottom: 10px;
+    }
+
+    input[type="number"] {
+      width: 150px;
+      padding: 5px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    #compute {
+      background-color: #90EE90;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .center-button {
+      display: flex;
+      justify-content: center;
+    }
+
+    .centered-logo {
+      display: block;
+      margin: 0 auto 20px auto;
+      max-width: 100px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="PIKIFI LOGO.png" alt="Pikifi Logo" class="centered-logo" />
+    <h2><b>Payroll System</b></h2>
+
+    <div class="row">
+      <label for="ratePerHour">Rate / Hour:</label>
+      <input type="number" id="ratePerHour" />
+    </div>
+
+    <div class="row">
+      <label for="hoursPerDay">Hours / Day:</label>
+      <input type="number" id="hoursPerDay" />
+    </div>
+
+    <div class="row">
+      <label for="daysWorked">Number of Days Worked:</label>
+      <input type="number" id="daysWorked" />
+    </div>
+
+    <div class="row">
+      <label for="grossSalary">Gross Salary:</label>
+      <input type="number" id="grossSalary" enable />
+    </div>
+
+    <h2><b>Deduction Of Salary</b></h2>
+
+    <div class="row">
+      <label for="tax">Tax :</label>
+      <input type="number" id="tax" readonly />
+    </div>
+
+    <div class="row">
+      <label for="philHealth">PhilHealth:</label>
+      <input type="number" id="philHealth" readonly />
+    </div>
+
+    <div class="row">
+      <label for="sss">SSS :</label>
+      <input type="number" id="sss" readonly />
+    </div>
+
+    <div class="row">
+      <label for="totalDeduction">Total Deduction:</label>
+      <input type="number" id="totalDeduction" readonly />
+    </div>
+
+    <div class="row">
+      <label for="netSalary">Net Salary:</label>
+      <input type="number" id="netSalary" readonly />
+    </div>
+
+    <div class="center-button">
+      <button id="compute">COMPUTE</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("compute").addEventListener("click", async () => {
+      const rate = parseFloat(document.getElementById("ratePerHour").value);
+      const hours = parseFloat(document.getElementById("hoursPerDay").value);
+      const days = parseFloat(document.getElementById("daysWorked").value);
+
+      if (isNaN(rate) || isNaN(hours) || isNaN(days)) {
+        alert("Please fill out all fields with valid numbers.");
+        return;
+      }
+
+      const gross = rate * hours * days;
+      const tax = gross * 0.15;
+      const philHealth = gross * 0.05;
+      const sss = gross * 0.11;
+      const totalDeduction = tax + philHealth + sss;
+      const net = gross - totalDeduction;
+
+      document.getElementById("grossSalary").value = gross.toFixed(2);
+      document.getElementById("tax").value = tax.toFixed(2);
+      document.getElementById("philHealth").value = philHealth.toFixed(2);
+      document.getElementById("sss").value = sss.toFixed(2);
+      document.getElementById("totalDeduction").value = totalDeduction.toFixed(2);
+      document.getElementById("netSalary").value = net.toFixed(2);
+
+      const payrollData = {
+        ratePerHour: rate,
+        hoursPerDay: hours,
+        daysWorked: days,
+        grossSalary: gross,
+        tax: tax,
+        philHealth: philHealth,
+        sss: sss,
+        totalDeduction: totalDeduction,
+        netSalary: net
+      };
+
+    fetch("http://localhost:3000/payroll", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    ratePerHour: rate,
+    hoursPerDay: hours,
+    daysWorked: days,
+    grossSalary: gross,
+    tax: tax,
+    philHealth: philHealth,
+    sss: sss,
+    totalDeduction: totalDeduction,
+    netSalary: net,
+  }),
+})
+  .then(res => res.json())
+  .then(data => {
+    console.log("Saved!", data);
+    alert("Payroll saved to database!");
+  })
+  .catch(err => console.error("Error saving payroll:", err));
+    });
+    </script>
+</body> 
+</html>

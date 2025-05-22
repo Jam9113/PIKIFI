@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Employee Management System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #4A90E2;
+      padding: 20px;
+      color: white;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #3B5998;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #222;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-weight: 700;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input[type="text"], input[type="number"], input[type="time"] {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #6AB04C;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #4A852D;
+    }
+    .export-btn {
+      background-color: #FF5722;
+      margin-top: 10px;
+    }
+    table {
+      margin-top: 30px;
+      width: 100%;
+      border-collapse: collapse;
+      background: #2E3B55;
+      color: white;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #4A90E2;
+      text-align: center;
+    }
+    th {
+      background-color: #1E2A43;
+    }
+    .centered-logo {
+      display: block;
+      margin: 0 auto 20px auto;
+      max-width: 15%;  
+      height: auto;
+    }
+  </style>
+
+  <!-- Add jsPDF and jsPDF-AutoTable libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <img src="PIKIFI LOGO.png" alt="Pikifi Logo" class="centered-logo" />
+    <h2>Employee Management System</h2>
+
+    <label for="name">Employee Name:</label>
+    <input type="text" id="name" placeholder="Type employee name..." />
+
+    <label for="department">Department:</label>
+    <input type="text" id="department" placeholder="Type department..." />
+
+    <label for="timeIn">Time In:</label>
+    <input type="time" id="timeIn" />
+
+    <label for="timeOut">Time Out:</label>
+    <input type="time" id="timeOut" />
+
+    <label for="absences">Number of Absences:</label>
+    <input type="number" id="absences" min="0" value="0" />
+
+    <button id="saveBtn">Save Employee Data</button>
+    <button id="exportPdfBtn" class="export-btn">Export to PDF</button>
+
+    <table id="employeeTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Time In</th>
+          <th>Time Out</th>
+          <th>Absences</th>
+          <th>Salary (PHP)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const hourlyRate = 645; 
+    const officialStart = '08:00'; 
+
+    let employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+    const saveBtn = document.getElementById('saveBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const employeeTable = document.getElementById('employeeTable');
+    const tbody = employeeTable.querySelector('tbody');
+
+    function timeToMinutes(t) {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function calculateSalary(timeIn, timeOut, absences) {
+      const startMinutes = timeToMinutes(officialStart);
+      const timeInMinutes = timeToMinutes(timeIn);
+      const timeOutMinutes = timeToMinutes(timeOut);
+
+      let workedMinutes = timeOutMinutes - timeInMinutes;
+
+      if (timeInMinutes > startMinutes) {
+        workedMinutes -= 60;
+      }
+
+      if (workedMinutes < 0) workedMinutes = 0;
+
+      const workedHours = workedMinutes / 60;
+      const absenceHours = absences * 8;
+
+      let payableHours = workedHours - absenceHours;
+      if (payableHours < 0) payableHours = 0;
+
+      return (payableHours * hourlyRate).toFixed(2);
+    }
+
+    function updateTable() {
+      tbody.innerHTML = '';
+
+      employees.forEach(emp => {
+        const salary = calculateSalary(emp.timeIn, emp.timeOut, emp.absences);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${emp.name}</td>
+          <td>${emp.department}</td>
+          <td>${emp.timeIn}</td>
+          <td>${emp.timeOut}</td>
+          <td>${emp.absences}</td>
+          <td>${salary}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      employeeTable.style.display = employees.length ? 'table' : 'none';
+    }
+
+    function clearForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('department').value = '';
+      document.getElementById('timeIn').value = '';
+      document.getElementById('timeOut').value = '';
+      document.getElementById('absences').value = 0;
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim();
+      const department = document.getElementById('department').value.trim();
+      const timeIn = document.getElementById('timeIn').value;
+      const timeOut = document.getElementById('timeOut').value;
+      const absences = Number(document.getElementById('absences').value);
+
+      if (!name || !department || !timeIn || !timeOut) {
+        alert('Fill all fields (absences can be zero).');
+        return;
+      }
+
+      if (timeOut <= timeIn) {
+        alert('Time Out should be after Time In. Fix it!');
+        return;
+      }
+
+      const employee = { name, department, timeIn, timeOut, absences };
+
+      employees.push(employee);
+
+      localStorage.setItem('employees', JSON.stringify(employees));
+
+      updateTable();
+      clearForm();
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+      if (employees.length === 0) {
+        alert('No employee data to export!');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.text("Employee Management System Report", 14, 15);
+
+      const columns = ["Name", "Department", "Time In", "Time Out", "Absences", "Salary (PHP)"];
+      const rows = employees.map(emp => [
+        emp.name,
+        emp.department,
+        emp.timeIn,
+        emp.timeOut,
+        emp.absences.toString(),
+        calculateSalary(emp.timeIn, emp.timeOut, emp.absences)
+      ]);
+
+      doc.autoTable({
+        startY: 20,
+        head: [columns],
+        body: rows,
+        styles: { fillColor: [58, 89, 152], textColor: 255 },
+        headStyles: { fillColor: [26, 42, 67] },
+      });
+
+      doc.save("employee_report.pdf");
+    });
+
+    updateTable();
+  </script>
+</body>
+</html>
