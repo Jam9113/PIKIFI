@@ -29,7 +29,7 @@
       margin-bottom: 6px;
       font-weight: 600;
     }
-    input[type="text"], input[type="number"], input[type="time"] {
+    input {
       width: 100%;
       padding: 8px 10px;
       border-radius: 6px;
@@ -50,10 +50,6 @@
     button:hover {
       background-color: #4A852D;
     }
-    .export-btn {
-      background-color: #FF5722;
-      margin-top: 10px;
-    }
     table {
       margin-top: 30px;
       width: 100%;
@@ -69,50 +65,45 @@
     th {
       background-color: #1E2A43;
     }
-    .centered-logo {
-      display: block;
-      margin: 0 auto 20px auto;
-      max-width: 15%;  
-      height: auto;
-    }
   </style>
-
-  <!-- Add jsPDF and jsPDF-AutoTable libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <img src="PIKIFI LOGO.png" alt="Pikifi Logo" class="centered-logo" />
     <h2>Employee Management System</h2>
+    <form id="employeeForm">
+      <input type="hidden" id="employeeId" />
+      <label for="name">Name</label>
+      <input type="text" id="name" required />
 
-    <label for="name">Employee Name:</label>
-    <input type="text" id="name" placeholder="Type employee name..." />
+      <label for="position">Position</label>
+      <input type="text" id="position" required />
 
-    <label for="department">Department:</label>
-    <input type="text" id="department" placeholder="Type department..." />
+      <label for="department">Department</label>
+      <input type="text" id="department" required />
 
-    <label for="timeIn">Time In:</label>
-    <input type="time" id="timeIn" />
+      <label for="salary">Monthly Salary (PHP)</label>
+      <input type="number" id="salary" required />
 
-    <label for="timeOut">Time Out:</label>
-    <input type="time" id="timeOut" />
+      <label for="timeIn">Time In</label>
+      <input type="time" id="timeIn" />
 
-    <label for="absences">Number of Absences:</label>
-    <input type="number" id="absences" min="0" value="0" />
+      <label for="timeOut">Time Out</label>
+      <input type="time" id="timeOut" />
 
-    <button id="saveBtn">Save Employee Data</button>
-    <button id="exportPdfBtn" class="export-btn">Export to PDF</button>
+      <label for="absences">Absences</label>
+      <input type="number" id="absences" min="0" value="0" />
+
+      <button type="submit">Save Employee Data</button>
+    </form>
 
     <table id="employeeTable" style="display:none;">
       <thead>
         <tr>
           <th>Name</th>
+          <th>Position</th>
           <th>Department</th>
-          <th>Time In</th>
-          <th>Time Out</th>
-          <th>Absences</th>
-          <th>Salary (PHP)</th>
+          <th>Salary</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -120,132 +111,98 @@
   </div>
 
   <script>
-    const hourlyRate = 645; 
-    const officialStart = '08:00'; 
+    const api = 'http://localhost:3000/api/employees';
 
-    let employees = JSON.parse(localStorage.getItem('employees')) || [];
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchEmployees();
 
-    const saveBtn = document.getElementById('saveBtn');
-    const exportPdfBtn = document.getElementById('exportPdfBtn');
-    const employeeTable = document.getElementById('employeeTable');
-    const tbody = employeeTable.querySelector('tbody');
+      document.getElementById('employeeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    function timeToMinutes(t) {
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    }
+        const id = document.getElementById('employeeId').value;
+        const employee = {
+          name: document.getElementById('name').value,
+          position: document.getElementById('position').value,
+          department: document.getElementById('department').value,
+          salary: parseFloat(document.getElementById('salary').value),
+          timeIn: document.getElementById('timeIn').value,
+          timeOut: document.getElementById('timeOut').value,
+          absences: parseInt(document.getElementById('absences').value)
+        };
 
-    function calculateSalary(timeIn, timeOut, absences) {
-      const startMinutes = timeToMinutes(officialStart);
-      const timeInMinutes = timeToMinutes(timeIn);
-      const timeOutMinutes = timeToMinutes(timeOut);
+        try {
+          if (id) {
+            await fetch(`${api}/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(employee)
+            });
+          } else {
+            await fetch(api, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(employee)
+            });
+          }
 
-      let workedMinutes = timeOutMinutes - timeInMinutes;
-
-      if (timeInMinutes > startMinutes) {
-        workedMinutes -= 60;
-      }
-
-      if (workedMinutes < 0) workedMinutes = 0;
-
-      const workedHours = workedMinutes / 60;
-      const absenceHours = absences * 8;
-
-      let payableHours = workedHours - absenceHours;
-      if (payableHours < 0) payableHours = 0;
-
-      return (payableHours * hourlyRate).toFixed(2);
-    }
-
-    function updateTable() {
-      tbody.innerHTML = '';
-
-      employees.forEach(emp => {
-        const salary = calculateSalary(emp.timeIn, emp.timeOut, emp.absences);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${emp.name}</td>
-          <td>${emp.department}</td>
-          <td>${emp.timeIn}</td>
-          <td>${emp.timeOut}</td>
-          <td>${emp.absences}</td>
-          <td>${salary}</td>
-        `;
-        tbody.appendChild(tr);
+          document.getElementById('employeeForm').reset();
+          document.getElementById('employeeId').value = '';
+          fetchEmployees();
+        } catch (err) {
+          console.error('Error saving employee:', err);
+        }
       });
-
-      employeeTable.style.display = employees.length ? 'table' : 'none';
-    }
-
-    function clearForm() {
-      document.getElementById('name').value = '';
-      document.getElementById('department').value = '';
-      document.getElementById('timeIn').value = '';
-      document.getElementById('timeOut').value = '';
-      document.getElementById('absences').value = 0;
-    }
-
-    saveBtn.addEventListener('click', () => {
-      const name = document.getElementById('name').value.trim();
-      const department = document.getElementById('department').value.trim();
-      const timeIn = document.getElementById('timeIn').value;
-      const timeOut = document.getElementById('timeOut').value;
-      const absences = Number(document.getElementById('absences').value);
-
-      if (!name || !department || !timeIn || !timeOut) {
-        alert('Fill all fields (absences can be zero).');
-        return;
-      }
-
-      if (timeOut <= timeIn) {
-        alert('Time Out should be after Time In. Fix it!');
-        return;
-      }
-
-      const employee = { name, department, timeIn, timeOut, absences };
-
-      employees.push(employee);
-
-      localStorage.setItem('employees', JSON.stringify(employees));
-
-      updateTable();
-      clearForm();
     });
 
-    exportPdfBtn.addEventListener('click', () => {
-      if (employees.length === 0) {
-        alert('No employee data to export!');
-        return;
+    async function fetchEmployees() {
+      try {
+        const res = await fetch(api);
+        const employees = await res.json();
+
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = '';
+
+        employees.forEach(emp => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${emp.name}</td>
+            <td>${emp.position}</td>
+            <td>${emp.department}</td>
+            <td>${emp.salary}</td>
+            <td>
+              <button onclick="editEmployee('${emp._id}')">Edit</button>
+              <button onclick="deleteEmployee('${emp._id}')">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById("employeeTable").style.display = employees.length ? "table" : "none";
+      } catch (err) {
+        console.error('Error fetching employees:', err);
       }
+    }
 
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+    async function editEmployee(id) {
+      const res = await fetch(`${api}/${id}`);
+      const emp = await res.json();
+      document.getElementById('employeeId').value = emp._id;
+      document.getElementById('name').value = emp.name;
+      document.getElementById('position').value = emp.position;
+      document.getElementById('department').value = emp.department;
+      document.getElementById('salary').value = emp.salary;
+      document.getElementById('timeIn').value = emp.timeIn || '';
+      document.getElementById('timeOut').value = emp.timeOut || '';
+      document.getElementById('absences').value = emp.absences || 0;
+    }
 
-      doc.text("Employee Management System Report", 14, 15);
-
-      const columns = ["Name", "Department", "Time In", "Time Out", "Absences", "Salary (PHP)"];
-      const rows = employees.map(emp => [
-        emp.name,
-        emp.department,
-        emp.timeIn,
-        emp.timeOut,
-        emp.absences.toString(),
-        calculateSalary(emp.timeIn, emp.timeOut, emp.absences)
-      ]);
-
-      doc.autoTable({
-        startY: 20,
-        head: [columns],
-        body: rows,
-        styles: { fillColor: [58, 89, 152], textColor: 255 },
-        headStyles: { fillColor: [26, 42, 67] },
-      });
-
-      doc.save("employee_report.pdf");
-    });
-
-    updateTable();
+    async function deleteEmployee(id) {
+      if (confirm('Delete this employee?')) {
+        await fetch(`${api}/${id}`, { method: 'DELETE' });
+        fetchEmployees();
+      }
+    }
   </script>
 </body>
 </html>
+
