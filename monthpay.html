@@ -40,7 +40,6 @@
       border: none;
       margin-bottom: 15px;
       font-size: 16px;
-      box-sizing: border-box;
     }
     select {
       width: 100%;
@@ -49,7 +48,6 @@
       border: none;
       margin-bottom: 20px;
       font-size: 16px;
-      appearance: none;
       background-color: #5773b9;
       color: white;
       cursor: pointer;
@@ -64,7 +62,6 @@
       cursor: pointer;
       width: 100%;
       margin-top: 8px;
-      transition: background-color 0.3s ease;
     }
     button:hover {
       background-color: #4A852D;
@@ -85,8 +82,6 @@
       border-collapse: collapse;
       background: #2E3B55;
       color: white;
-      border-radius: 6px;
-      overflow: hidden;
       display: none;
     }
     th, td {
@@ -104,9 +99,6 @@
       color: #ccc;
     }
   </style>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -114,6 +106,7 @@
 
     <label for="newName">New Employee Name</label>
     <input type="text" id="newName" placeholder="Enter employee name" />
+
     <label for="newSalary">Monthly Salary (₱)</label>
     <input type="number" id="newSalary" placeholder="Enter monthly salary" min="0" step="0.01" />
 
@@ -147,13 +140,10 @@
 
   <script>
     const employeeSelect = document.getElementById('employeeSelect');
-    const calculateBtn = document.getElementById('calculateBtn');
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
     const resultDiv = document.getElementById('result');
     const historyTable = document.getElementById('historyTable');
     const historyTbody = historyTable.querySelector('tbody');
     const noHistoryMsg = document.getElementById('noHistoryMsg');
-
     const addEmployeeBtn = document.getElementById('addEmployeeBtn');
     const newNameInput = document.getElementById('newName');
     const newSalaryInput = document.getElementById('newSalary');
@@ -163,11 +153,11 @@
         const res = await fetch('http://localhost:3000/api/employees');
         if (!res.ok) throw new Error('Failed to fetch employees');
         const employees = await res.json();
-        employeeSelect.innerHTML = '<option value="">-- Select --</option>'; // reset options
+        employeeSelect.innerHTML = '<option value="">-- Select --</option>';
         employees.forEach(emp => {
           const option = document.createElement('option');
           option.value = emp._id;
-          option.textContent = `${emp.name} (₱${emp.Monthlysalary})`;
+          option.textContent = `${emp.name} (₱${emp.Monthlysalary || 0})`;
           employeeSelect.appendChild(option);
         });
       } catch (err) {
@@ -221,14 +211,13 @@
         const res = await fetch('http://localhost:3000/api/employees', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, salary })
+          body: JSON.stringify({ name, Monthlysalary: salary })
         });
 
         if (!res.ok) throw new Error('Failed to add employee');
 
         newNameInput.value = '';
         newSalaryInput.value = '';
-
         await loadEmployees();
         alert('Employee added successfully!');
       } catch (err) {
@@ -237,7 +226,7 @@
       }
     });
 
-    calculateBtn.addEventListener('click', async () => {
+    document.getElementById('calculateBtn').addEventListener('click', async () => {
       const employeeId = employeeSelect.value;
       if (!employeeId) {
         alert('Please select an employee');
@@ -262,12 +251,7 @@
       }
     });
 
-    // Initial load
-    loadEmployees().catch(err => {
-      alert('Failed to load employees on startup.');
-      console.error(err);
-    });
+    loadEmployees();
   </script>
 </body>
 </html>
-
