@@ -1,57 +1,32 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const bodyParser = require("body-parser");
+
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const path = require("path");
 
 const app = express();
-const PORT = 3000;
-
-
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, "frontend"))); // Adjust path if needed
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "frontend")));
 
-
-mongoose.connect("mongodb://127.0.0.1:27017/payrollDB", {
+mongoose.connect('mongodb://localhost:27017/monthpaydb', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-});
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
-db.once("open", () => console.log("✅ Connected to MongoDB"));
-
-
+// Employee Schema
 const EmployeeSchema = new mongoose.Schema({
   name: String,
-  position: String,
-  department: String,
-  salary: Number,
-  timeIn: String,
-  timeOut: String,
-  absences: Number,
-}, { timestamps: true });
-
-const Employee = mongoose.model("Employee", EmployeeSchema);
-
-
-const PayrollSchema = new mongoose.Schema({
-  employeeName: String,
-  ratePerHour: Number,
-  hoursPerDay: Number,
-  daysWorked: Number,
-  grossSalary: Number,
-  tax: Number,
-  philHealth: Number,
-  sss: Number,
-  totalDeduction: Number,
-  netSalary: Number,
-  createdAt: { type: Date, default: Date.now },
+  position: { type: String, default: "N/A" },
+  department: { type: String, default: "N/A" },
+  Monthlysalary: { type: Number, default: 0 },
+  Timein: { type: String, default: "N/A" },
+  Timeout: { type: String, default: "N/A" },
 });
+const Employee = mongoose.model('Employee', EmployeeSchema);
 
-const Payroll = mongoose.model("Payroll", PayrollSchema);
-
+// History Schema
 const HistorySchema = new mongoose.Schema({
   employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
   pay: Number,
@@ -59,33 +34,75 @@ const HistorySchema = new mongoose.Schema({
 });
 const History = mongoose.model('History', HistorySchema);
 
+// Payroll Schema
+const PayrollSchema = new mongoose.Schema({
+  employeeName: String,
+  RateperHour: Number,
+  HoursperDay: Number,
+  NumbersofDaysWorked: Number,
+  GrossSalary: Number,
+  Tax: Number,
+  Philhealth: Number,
+  SSS: Number,
+  TotalDeductions: Number,
+  NetSalary: Number,
+  createdAt: { type: Date, default: Date.now }
+});
+const Payroll = mongoose.model('Payroll', PayrollSchema);
 
-app.get("/api/employees", async (req, res) => {
-  const employees = await Employee.find().sort({ createdAt: -1 });
-  res.json(employees);
+// API ROUTES
+app.get('/api/employees', async (req, res) => {
+  try {
+    const employees = await Employee.find();
+    res.json(employees);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get("/api/employees/:id", async (req, res) => {
+app.get('/api/employees/:id', async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
-    if (!employee) return res.status(404).json({ error: "Not found" });
+    if (!employee) return res.status(404).json({ error: "Employee not found" });
     res.json(employee);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post("/api/employees", async (req, res) => {
+app.post('/api/employees', async (req, res) => {
   try {
-    const newEmployee = new Employee(req.body);
-    const saved = await newEmployee.save();
+    const {
+      name,
+      position,
+      department,
+      Monthlysalary,
+      Timein,
+      Timeout
+    } = req.body;
+
+    if (!name || typeof Monthlysalary !== 'number') {
+      return res.status(400).json({ error: 'Name and Monthlysalary are required' });
+    }
+
+    const employee = new Employee({
+      name,
+      position,
+      department,
+      Monthlysalary,
+      Timein,
+      Timeout
+    });
+
+    const saved = await employee.save();
     res.status(201).json(saved);
   } catch (err) {
+    console.error("Add employee error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put("/api/employees/:id", async (req, res) => {
+app.put('/api/employees/:id', async (req, res) => {
   try {
     const updated = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(updated);
@@ -94,10 +111,10 @@ app.put("/api/employees/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/employees/:id", async (req, res) => {
+app.delete('/api/employees/:id', async (req, res) => {
   try {
     await Employee.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted" });
+    res.json({ message: "Employee deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -132,53 +149,58 @@ app.post('/api/calculate', async (req, res) => {
   }
 });
 
-
-app.get("/api/payroll", async (req, res) => {
-  const payrolls = await Payroll.find().sort({ createdAt: -1 });
-  res.json(payrolls);
-});
-
-app.get("/api/payroll/:id", async (req, res) => {
+app.get('/api/payrolls', async (req, res) => {
   try {
-    const payroll = await Payroll.findById(req.params.id);
-    if (!payroll) return res.status(404).json({ error: "Not found" });
-    res.json(payroll);
+    const payrolls = await Payroll.find().sort({ createdAt: -1 });
+    res.json(payrolls);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post("/api/payroll", async (req, res) => {
+app.post('/api/payrolls', async (req, res) => {
   try {
     const payroll = new Payroll(req.body);
-    const saved = await payroll.save();
-    res.status(201).json(saved);
+    const savedPayroll = await payroll.save();
+    res.status(201).json(savedPayroll);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.put("/api/payroll/:id", async (req, res) => {
+app.put('/api/payrolls/:id', async (req, res) => {
   try {
-    const updated = await Payroll.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    res.json(updated);
+    const { id } = req.params;
+    const updatedPayroll = await Payroll.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+
+    if (!updatedPayroll) return res.status(404).json({ error: 'Payroll record not found' });
+
+    res.json(updatedPayroll);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.delete("/api/payroll/:id", async (req, res) => {
+app.delete('/api/payrolls/:id', async (req, res) => {
   try {
-    await Payroll.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted" });
+    const { id } = req.params;
+    const deleted = await Payroll.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ error: 'Payroll record not found' });
+
+    res.json({ message: 'Payroll record deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: "API route not found" });
 });
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "index.html"));
 });
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
