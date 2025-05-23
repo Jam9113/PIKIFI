@@ -51,6 +51,12 @@ const PayrollSchema = new mongoose.Schema({
 
 const Payroll = mongoose.model("Payroll", PayrollSchema);
 
+const HistorySchema = new mongoose.Schema({
+  employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
+  pay: Number,
+  createdAt: { type: Date, default: Date.now },
+});
+const History = mongoose.model('History', HistorySchema);
 
 
 app.get("/api/employees", async (req, res) => {
@@ -96,6 +102,34 @@ app.delete("/api/employees/:id", async (req, res) => {
   }
 });
 
+app.get('/api/history/:employeeId', async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const history = await History.find({ employeeId }).sort({ createdAt: -1 });
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/calculate', async (req, res) => {
+  try {
+    const { employeeId } = req.body;
+    if (!employeeId) return res.status(400).json({ error: 'Employee ID required' });
+
+    const employee = await Employee.findById(employeeId);
+    if (!employee) return res.status(404).json({ error: 'Employee not found' });
+
+    const pay = +(employee.Monthlysalary / 12).toFixed(2);
+
+    const newHistory = new History({ employeeId, pay });
+    await newHistory.save();
+
+    res.json({ pay });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 app.get("/api/payroll", async (req, res) => {
