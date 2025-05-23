@@ -37,6 +37,7 @@ const Employee = mongoose.model("Employee", EmployeeSchema);
 
 
 const PayrollSchema = new mongoose.Schema({
+  employeeName: String,
   ratePerHour: Number,
   hoursPerDay: Number,
   daysWorked: Number,
