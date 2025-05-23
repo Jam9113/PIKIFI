@@ -81,17 +81,14 @@
       <label for="department">Department</label>
       <input type="text" id="department" required />
 
-      <label for="salary">Monthly Salary (PHP)</label>
-      <input type="number" id="salary" required />
+      <label for="Monthlysalary">Monthly Salary (PHP)</label>
+      <input type="number" id="Monthlysalary" required />
 
-      <label for="timeIn">Time In</label>
-      <input type="time" id="timeIn" />
+      <label for="Timein">Time In</label>
+      <input type="time" id="Timein" />
 
-      <label for="timeOut">Time Out</label>
-      <input type="time" id="timeOut" />
-
-      <label for="absences">Absences</label>
-      <input type="number" id="absences" min="0" value="0" />
+      <label for="Timeout">Time Out</label>
+      <input type="time" id="Timeout" />
 
       <button type="submit">Save Employee Data</button>
     </form>
@@ -124,26 +121,19 @@
           name: document.getElementById('name').value,
           position: document.getElementById('position').value,
           department: document.getElementById('department').value,
-          salary: parseFloat(document.getElementById('salary').value),
-          timeIn: document.getElementById('timeIn').value,
-          timeOut: document.getElementById('timeOut').value,
-          absences: parseInt(document.getElementById('absences').value)
+          Monthlysalary: parseFloat(document.getElementById('Monthlysalary').value),
+          Timein: document.getElementById('Timein').value,
+          Timeout: document.getElementById('Timeout').value,
         };
 
         try {
-          if (id) {
-            await fetch(`${api}/${id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(employee)
-            });
-          } else {
-            await fetch(api, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(employee)
-            });
-          }
+          const res = await fetch(id ? `${api}/${id}` : api, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employee)
+          });
+
+          if (!res.ok) throw new Error('Failed to save employee');
 
           document.getElementById('employeeForm').reset();
           document.getElementById('employeeId').value = '';
@@ -158,7 +148,6 @@
       try {
         const res = await fetch(api);
         const employees = await res.json();
-
         const tbody = document.querySelector('tbody');
         tbody.innerHTML = '';
 
@@ -168,7 +157,7 @@
             <td>${emp.name}</td>
             <td>${emp.position}</td>
             <td>${emp.department}</td>
-            <td>${emp.salary}</td>
+            <td>${emp.Monthlysalary}</td>
             <td>
               <button onclick="editEmployee('${emp._id}')">Edit</button>
               <button onclick="deleteEmployee('${emp._id}')">Delete</button>
@@ -184,25 +173,31 @@
     }
 
     async function editEmployee(id) {
-      const res = await fetch(`${api}/${id}`);
-      const emp = await res.json();
-      document.getElementById('employeeId').value = emp._id;
-      document.getElementById('name').value = emp.name;
-      document.getElementById('position').value = emp.position;
-      document.getElementById('department').value = emp.department;
-      document.getElementById('salary').value = emp.salary;
-      document.getElementById('timeIn').value = emp.timeIn || '';
-      document.getElementById('timeOut').value = emp.timeOut || '';
-      document.getElementById('absences').value = emp.absences || 0;
+      try {
+        const res = await fetch(`${api}/${id}`);
+        const emp = await res.json();
+        document.getElementById('employeeId').value = emp._id;
+        document.getElementById('name').value = emp.name;
+        document.getElementById('position').value = emp.position;
+        document.getElementById('department').value = emp.department;
+        document.getElementById('Monthlysalary').value = emp.Monthlysalary;
+        document.getElementById('Timein').value = emp.Timein || '';
+        document.getElementById('Timeout').value = emp.Timeout || '';
+      } catch (err) {
+        console.error('Error loading employee for edit:', err);
+      }
     }
 
     async function deleteEmployee(id) {
       if (confirm('Delete this employee?')) {
-        await fetch(`${api}/${id}`, { method: 'DELETE' });
-        fetchEmployees();
+        try {
+          await fetch(`${api}/${id}`, { method: 'DELETE' });
+          fetchEmployees();
+        } catch (err) {
+          console.error('Error deleting employee:', err);
+        }
       }
     }
   </script>
 </body>
 </html>
-
