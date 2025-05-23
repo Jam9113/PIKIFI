@@ -32,7 +32,7 @@
       margin-bottom: 10px;
     }
 
-    input[type="number"] {
+    input[type="number"], input[type="text"] {
       width: 150px;
       padding: 5px;
     }
@@ -73,6 +73,11 @@
     <h2><b>Payroll System</b></h2>
 
     <div class="row">
+      <label for="employeeName">Employee Name:</label>
+      <input type="text" id="employeeName" />
+    </div>
+
+    <div class="row">
       <label for="ratePerHour">Rate / Hour:</label>
       <input type="number" id="ratePerHour" />
     </div>
@@ -89,7 +94,7 @@
 
     <div class="row">
       <label for="grossSalary">Gross Salary:</label>
-      <input type="number" id="grossSalary" enable />
+      <input type="number" id="grossSalary" readonly />
     </div>
 
     <h2><b>Deduction Of Salary</b></h2>
@@ -126,12 +131,13 @@
 
   <script>
     document.getElementById("compute").addEventListener("click", async () => {
+      const name = document.getElementById("employeeName").value.trim();
       const rate = parseFloat(document.getElementById("ratePerHour").value);
       const hours = parseFloat(document.getElementById("hoursPerDay").value);
       const days = parseFloat(document.getElementById("daysWorked").value);
 
-      if (isNaN(rate) || isNaN(hours) || isNaN(days)) {
-        alert("Please fill out all fields with valid numbers.");
+      if (!name || isNaN(rate) || isNaN(hours) || isNaN(days)) {
+        alert("Please fill out all fields correctly.");
         return;
       }
 
@@ -149,40 +155,32 @@
       document.getElementById("totalDeduction").value = totalDeduction.toFixed(2);
       document.getElementById("netSalary").value = net.toFixed(2);
 
-      const payrollData = {
-        ratePerHour: rate,
-        hoursPerDay: hours,
-        daysWorked: days,
-        grossSalary: gross,
-        tax: tax,
-        philHealth: philHealth,
-        sss: sss,
-        totalDeduction: totalDeduction,
-        netSalary: net
-      };
+      const res = await fetch("http://localhost:3000/api/payrolls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeName: name,
+          RateperHour: rate,
+          HoursperDay: hours,
+          NumbersofDaysWorked: days,
+          GrossSalary: gross,
+          Tax: tax,
+          Philhealth: philHealth,
+          SSS: sss,
+          TotalDeductions: totalDeduction,
+          NetSalary: net
+        }),
+      });
 
-    fetch("http://localhost:3000/payroll", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    ratePerHour: rate,
-    hoursPerDay: hours,
-    daysWorked: days,
-    grossSalary: gross,
-    tax: tax,
-    philHealth: philHealth,
-    sss: sss,
-    totalDeduction: totalDeduction,
-    netSalary: net,
-  }),
-})
-  .then(res => res.json())
-  .then(data => {
-    console.log("Saved!", data);
-    alert("Payroll saved to database!");
-  })
-  .catch(err => console.error("Error saving payroll:", err));
+      const result = await res.json();
+      if (res.ok) {
+        alert("Payroll saved to database!");
+        console.log(result);
+      } else {
+        console.error("Error saving payroll:", result.error);
+        alert("Failed to save payroll.");
+      }
     });
-    </script>
+  </script>
 </body> 
 </html>
