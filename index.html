@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Philippine Island Kids International Foundation</title>
+  <title>PIKIFI Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       margin: 0;
@@ -29,18 +30,23 @@
       height: 100%;
       overflow-y: auto;
     }
+    canvas#payrollChart {
+  max-width: 300px;
+  max-height: 300px;
+  margin: auto;
+  display: block;
+}
+
 
     .logo {
       text-align: center;
       font-size: 22px;
       font-weight: bold;
       padding: 15px;
-      background: #009ddc;
     }
 
     .sidebar ul {
       list-style: none;
-      padding: 0;
     }
 
     .sidebar ul li {
@@ -79,17 +85,9 @@
       box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .logout-btn {
-      background: green;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .logout-btn:hover {
-      background: darkgreen;
+    #clock {
+      font-size: 16px;
+      font-weight: 500;
     }
 
     .dashboard-widgets {
@@ -134,6 +132,14 @@
       margin: 0 auto 10px auto;
     }
 
+    .chart-container {
+      margin-top: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
     @media (max-width: 768px) {
       .sidebar {
         width: 200px;
@@ -172,8 +178,8 @@
 
   <div class="main-content">
     <div class="header">
-      <h2>Dashboard</h2>
-      <button id="logoutBtn" class="logout-btn">Logout</button>
+      <h1>Welcome to PIKIFI Dashboard</h1>
+      <span id="clock"></span>
     </div>
 
     <div class="dashboard-widgets">
@@ -190,15 +196,42 @@
         <p>13th Month Pay</p>
       </a>
     </div>
+
+    <div class="chart-container">
+      <h3>Payroll Distribution</h3>
+      <canvas id="payrollChart"></canvas>
+    </div>
   </div>
 
   <script>
-    document.getElementById("logoutBtn").addEventListener("click", function () {
-      if (confirm("Are you sure you want to log out?")) {
-        window.location.href = "LOGIN.html";
-      }
-    });
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function renderPayrollChart() {
+      const ctx = document.getElementById('payrollChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Admin', 'HR', 'Finance', 'IT'],
+          datasets: [{
+            label: 'Payroll Distribution',
+            data: [30000, 50000, 20000, 10000],
+            backgroundColor: ['#009ddc', '#00b3ff', '#66d9ff', '#cceeff']
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    renderPayrollChart();
   </script>
 </body>
 </html>
+
 
