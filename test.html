@@ -4,128 +4,291 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Payroll System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins"/>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Poppins, sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: blue;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #9BB1D4;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px #444;
-    }
-
-    h2 {
-      text-align: center;
-      font-weight: bold;
-      margin: 20px 0;
-    }
-
-    label {
-      display: inline-block;
-      width: 180px;
-      margin-bottom: 10px;
-    }
-
-    input[type="number"], input[type="text"] {
-      width: 150px;
-      padding: 5px;
-    }
-
-    .row {
       display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
+      height: 100vh;
+      background-color: #f4f4f4;
+      color: black;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #009ddc;
+      padding-top: 20px;
+      position: fixed;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 15px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      padding: 15px;
+      transition: 0.3s;
+    }
+
+    .sidebar ul li a {
+      color: black;
+      text-decoration: none;
+      display: flex;
       align-items: center;
     }
 
-    #compute {
-      background-color: #90EE90;
-      padding: 10px 20px;
-      border: none;
+    .sidebar ul li a i {
+      margin-right: 10px;
+    }
+
+    .sidebar ul li:hover {
+      background: #00b3ff;
       cursor: pointer;
-      font-weight: bold;
-      margin-top: 10px;
     }
 
-    .center-button {
-      display: flex;
-      justify-content: center;
+    .sidebar ul li.active {
+      background: #00b3ff;
     }
 
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      width: calc(100% - 250px);
+      background-color: #4A90E2;
+      min-height: 100vh;
+    }
+
+    .img {
+      width: 50%;
+      height: auto;
+      display: block;
+      margin: 0 auto 10px auto;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #3B5998;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #222;
+    }    
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 700;
+      color: white;
+    }
+    
     .centered-logo {
       display: block;
       margin: 0 auto 20px auto;
       max-width: 100px;
       height: auto;
     }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+      .row {
+      margin-bottom: 15px;
+    }
+    
+    .form-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .form-section {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    
+    .form-section h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #FFA500;
+      border-bottom: 2px solid #FFA500;
+      padding-bottom: 10px;
+    }
+
+    button {
+      background-color: #6AB04C;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background-color: #4A852D;
+    }
+    
+    .center-button {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    table {
+      margin-top: 30px;
+      width: 100%;
+      border-collapse: collapse;
+      background: #2E3B55;
+      color: white;
+    }
+    
+    th, td {
+      padding: 12px;
+      border: 1px solid #4A90E2;
+      text-align: center;
+    }
+    
+    th {
+      background-color: #1E2A43;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .form-columns {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .sidebar {
+        width: 200px;
+      }
+      .main-content {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        width: 100px;
+      }
+      .sidebar ul li a span {
+        display: none;
+      }
+      .main-content {
+        margin-left: 100px;
+        width: calc(100% - 100px);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <img src="PIKIFI LOGO.png" alt="Pikifi Logo" class="centered-logo" />
-    <h2><b>Payroll System</b></h2>
+  <div class="sidebar">
+    <img src="PIKIFI LOGO.png" alt="Logo" class="img"/>
+    <div class="logo">PIKIFI Dashboard</div>    <ul class="main">
+      <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+      <li><a href="Employee.html"><i class="fas fa-users"></i> <span>Employees</span></a></li>
+      <li class="active"><a href="test.html"><i class="fas fa-money-bill-wave"></i> <span>Payroll</span></a></li>
+      <li><a href="monthpay.html"><i class="fas fa-calendar-alt"></i> <span>13th Month Pay</span></a></li>
+    </ul>
+  </div>
 
-    <div class="row">
-      <label for="employeeName">Employee Name:</label>
-      <input type="text" id="employeeName" />
-    </div>
+  <div class="main-content">
+    <div class="container"><h2>Payroll System</h2>
 
-    <div class="row">
-      <label for="ratePerHour">Rate / Hour:</label>
-      <input type="number" id="ratePerHour" />
-    </div>
+    <div class="form-columns">
+      <div class="form-section">
+        <h3>Employee Information</h3>
+        
+        <div class="row">
+          <label for="employeeName">Employee Name:</label>
+          <input type="text" id="employeeName" />
+        </div>
 
-    <div class="row">
-      <label for="hoursPerDay">Hours / Day:</label>
-      <input type="number" id="hoursPerDay" />
-    </div>
+        <div class="row">
+          <label for="ratePerHour">Rate per Hour (₱):</label>
+          <input type="number" id="ratePerHour" step="0.01" />
+        </div>
 
-    <div class="row">
-      <label for="daysWorked">Number of Days Worked:</label>
-      <input type="number" id="daysWorked" />
-    </div>
+        <div class="row">
+          <label for="hoursPerDay">Hours per Day:</label>
+          <input type="number" id="hoursPerDay" step="0.01" />
+        </div>
 
-    <div class="row">
-      <label for="grossSalary">Gross Salary:</label>
-      <input type="number" id="grossSalary" readonly />
-    </div>
+        <div class="row">
+          <label for="daysWorked">Number of Days Worked:</label>
+          <input type="number" id="daysWorked" />
+        </div>
 
-    <h2><b>Deduction Of Salary</b></h2>
+        <div class="row">
+          <label for="grossSalary">Gross Salary (₱):</label>
+          <input type="number" id="grossSalary" readonly />
+        </div>
+      </div>
 
-    <div class="row">
-      <label for="tax">Tax :</label>
-      <input type="number" id="tax" readonly />
-    </div>
+      <div class="form-section">
+        <h3>Salary Deductions</h3>
+        
+        <div class="row">
+          <label for="tax">Tax (₱):</label>
+          <input type="number" id="tax" readonly />
+        </div>
 
-    <div class="row">
-      <label for="philHealth">PhilHealth:</label>
-      <input type="number" id="philHealth" readonly />
-    </div>
+        <div class="row">
+          <label for="philHealth">PhilHealth (₱):</label>
+          <input type="number" id="philHealth" readonly />
+        </div>
 
-    <div class="row">
-      <label for="sss">SSS :</label>
-      <input type="number" id="sss" readonly />
-    </div>
+        <div class="row">
+          <label for="sss">SSS (₱):</label>
+          <input type="number" id="sss" readonly />
+        </div>
 
-    <div class="row">
-      <label for="totalDeduction">Total Deduction:</label>
-      <input type="number" id="totalDeduction" readonly />
-    </div>
+        <div class="row">
+          <label for="totalDeduction">Total Deduction (₱):</label>
+          <input type="number" id="totalDeduction" readonly />
+        </div>
 
-    <div class="row">
-      <label for="netSalary">Net Salary:</label>
-      <input type="number" id="netSalary" readonly />
-    </div>
-
-    <div class="center-button">
+        <div class="row">
+          <label for="netSalary">Net Salary (₱):</label>
+          <input type="number" id="netSalary" readonly />
+        </div>
+      </div>
+    </div>    <div class="center-button">
       <button id="compute">COMPUTE</button>
+    </div>
     </div>
   </div>
 

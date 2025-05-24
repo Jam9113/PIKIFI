@@ -4,35 +4,112 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>13th Month Pay Calculator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins"/>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Poppins, sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #4A90E2;
-      padding: 20px;
-      color: white;
-      min-height: 100vh;
       display: flex;
-      justify-content: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+      color: black;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #009ddc;
+      padding-top: 20px;
+      position: fixed;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 15px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      padding: 15px;
+      transition: 0.3s;
+    }
+
+    .sidebar ul li a {
+      color: black;
+      text-decoration: none;
+      display: flex;
       align-items: center;
     }
+
+    .sidebar ul li a i {
+      margin-right: 10px;
+    }
+
+    .sidebar ul li:hover {
+      background: #00b3ff;
+      cursor: pointer;
+    }
+
+    .sidebar ul li.active {
+      background: #00b3ff;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      width: calc(100% - 250px);
+      background-color: #4A90E2;
+      min-height: 100vh;
+    }
+
+    .img {
+      width: 50%;
+      height: auto;
+      display: block;
+      margin: 0 auto 10px auto;
+    }
+    
     .container {
-      max-width: 500px;
-      width: 100%;
+      max-width: 700px;
+      margin: auto;
       background: #3B5998;
-      padding: 30px 25px;
+      padding: 30px;
       border-radius: 12px;
       box-shadow: 0 0 15px #222;
-    }
+    }    
     h2 {
       text-align: center;
       margin-bottom: 30px;
       font-weight: 700;
+      color: white;
     }
+    
+    .centered-logo {
+      display: block;
+      margin: 0 auto 20px auto;
+      max-width: 100px;
+      height: auto;
+    }
+    
     label {
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
+      color: white;
     }
+    
     input[type="text"], input[type="number"] {
       width: 100%;
       padding: 10px;
@@ -40,109 +117,152 @@
       border: none;
       margin-bottom: 15px;
       font-size: 16px;
+      box-sizing: border-box;
     }
+    
     select {
       width: 100%;
       padding: 10px;
       border-radius: 6px;
       border: none;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       font-size: 16px;
       background-color: #5773b9;
       color: white;
       cursor: pointer;
+      box-sizing: border-box;
     }
+    
     button {
       background-color: #6AB04C;
       color: white;
       border: none;
-      padding: 12px;
+      padding: 12px 20px;
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
       width: 100%;
-      margin-top: 8px;
+      margin-top: 10px;
     }
+    
     button:hover {
       background-color: #4A852D;
     }
+    
     .export-btn {
-      background-color: #FF5722;
-      margin-top: 12px;
+      background-color: #FFA500;
+      margin-top: 15px;
     }
-    #result {
-      margin-top: 20px;
-      font-weight: 700;
-      text-align: center;
-      font-size: 18px;
+    
+    .export-btn:hover {
+      background-color: #FF8C00;
     }
-     .centered-logo {
-      display: block;
-      margin: 0 auto 20px auto;
-      max-width: 100px;
-      height: auto;
-    }
+    
     table {
       margin-top: 30px;
       width: 100%;
       border-collapse: collapse;
       background: #2E3B55;
       color: white;
-      display: none;
     }
+    
     th, td {
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #4A90E2;
       text-align: center;
     }
-    th {
+      th {
       background-color: #1E2A43;
+      font-weight: 700;
     }
+
+    #result {
+      margin-top: 20px;
+      font-weight: 700;
+      text-align: center;
+      font-size: 18px;
+      color: white;
+    }
+
     .entry-no-history {
       font-style: italic;
       text-align: center;
       margin-top: 15px;
       color: #ccc;
     }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+      .main-content {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar {
+        width: 100px;
+      }
+      .sidebar ul li a span {
+        display: none;
+      }
+      .main-content {
+        margin-left: 100px;
+        width: calc(100% - 100px);
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-   <img src="PIKIFI LOGO.png" alt="Pikifi Logo" class="centered-logo" />
-    <h2>13th Month Pay Calculator</h2>
+  <div class="sidebar">
+    <img src="PIKIFI LOGO.png" alt="Logo" class="img"/>
+    <div class="logo">PIKIFI Dashboard</div>    <ul class="main">
+      <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+      <li><a href="Employee.html"><i class="fas fa-users"></i> <span>Employees</span></a></li>
+      <li><a href="test.html"><i class="fas fa-money-bill-wave"></i> <span>Payroll</span></a></li>
+      <li class="active"><a href="monthpay.html"><i class="fas fa-calendar-alt"></i> <span>13th Month Pay</span></a></li>
+    </ul>
+  </div>
+  <div class="main-content">
+    <div class="container">
+      <img src="PIKIFI LOGO.png" alt="Pikifi Logo" class="centered-logo" />
+      <h2>13th Month Pay Calculator</h2>
 
-    <label for="newName">New Employee Name</label>
-    <input type="text" id="newName" placeholder="Enter employee name" />
+      <label for="newName">New Employee Name</label>
+      <input type="text" id="newName" placeholder="Enter employee name" />
 
-    <label for="newSalary">Monthly Salary (₱)</label>
-    <input type="number" id="newSalary" placeholder="Enter monthly salary" min="0" step="0.01" />
+      <label for="newSalary">Monthly Salary (₱)</label>
+      <input type="number" id="newSalary" placeholder="Enter monthly salary" min="0" step="0.01" />
 
-    <button id="addEmployeeBtn">Add New Employee</button>
+      <button id="addEmployeeBtn">Add New Employee</button>
 
-    <hr style="margin: 25px 0; border-color: #5773b9;" />
+      <hr style="margin: 25px 0; border-color: #5773b9;" />
 
-    <label for="employeeSelect">Select Employee</label>
-    <select id="employeeSelect" required>
-      <option value="">-- Select --</option>
-    </select>
+      <label for="employeeSelect">Select Employee</label>
+      <select id="employeeSelect" required>
+        <option value="">-- Select --</option>
+      </select>
 
-    <button id="calculateBtn">Calculate</button>
-    <button id="downloadPdfBtn" class="export-btn">Download PDF</button>
+      <button id="calculateBtn">Calculate</button>
+      <button id="downloadPdfBtn" class="export-btn">Download PDF</button>
 
-    <div id="result"></div>
+      <div id="result"></div>
 
-    <table id="historyTable">
-      <thead>
-        <tr>
-          <th>Employee</th>
-          <th>13th Month Pay (₱)</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>13th Month Pay (₱)</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-    <div id="noHistoryMsg" class="entry-no-history">Select an employee to see history</div>
+      <div id="noHistoryMsg" class="entry-no-history">Select an employee to see history</div>
+    </div>
   </div>
 
   <script>
