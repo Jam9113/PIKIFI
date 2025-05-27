@@ -1,10 +1,10 @@
 # PIKIFI Dashboard
 
-A payroll management system built with Node.js, Express, and MongoDB.
+A payroll management system built with Node.js, HTML,Javascript, Express, and MongoDB.
 
 ## Installation
 
-1. Install dependencies: `npm install`
+1. Install dependencies and cors: `npm install'
 2. Start MongoDB service
 3. Run the application: `node server.js`
 4. Open browser to `http://localhost:3000`
@@ -15,8 +15,8 @@ A payroll management system built with Node.js, Express, and MongoDB.
 **Major UI/UX Improvements & Database Setup**
 
 **Database Setup:**
-- Installed MongoDB Community Server v8.0.9
-- Connected to 'monthpaydb' database
+- Installed MongoDB Compass
+- monthpaydb' database
 - Fixed deprecated mongoose connection options in server.js
 
 **UI/UX Enhancements:**
